@@ -14,52 +14,44 @@ const withdrawcash = $.getdata('zqcash')||30 //提现金额
 let withdrawUrl =$.getdata('cashurl_zq')
 let withdrawBody =$.getdata('cashbody_zq')
 
-let rotaryscore=0,doublerotary=0,signresult; 
-let refererArr = [], signheaderVal = '',
+let logs = $.getdata('zqlogs')||false, rotaryscore=0,doublerotary=0,signresult; 
+let cookiesArr = [], signheaderVal = '',
     readArr = [], articlebodyVal ='',
     timeArr = [], timebodyVal = '',
     redpArr = [], redpbodyVal = '',
     detail = ``, subTitle = ``;
-let RefererYouth = [], ARTBODYs = [], 
+let CookieYouth = [], ARTBODYs = [], 
     REDBODYs  = [], READTIME = [];
 if ($.isNode()) {
-    if (process.env.YOUTH_HEADER && process.env.YOUTH_HEADER.indexOf('#') > -1) {
-        RefererYouth = process.env.YOUTH_HEADER.split('#');
-    } else if (process.env.YOUTH_HEADER && process.env.YOUTH_HEADER.indexOf('\n') > -1) {
-        RefererYouth = process.env.YOUTH_HEADER.split('\n');
-    } else {
-        RefererYouth = process.env.YOUTH_HEADER.split()
-    };
-
-    if (process.env.YOUTH_ARTBODY && process.env.YOUTH_ARTBODY.indexOf('&') > -1) {
-        ARTBODYs = process.env.YOUTH_ARTBODY.split('&');
-    } else if (process.env.YOUTH_ARTBODY && process.env.YOUTH_ARTBODY.indexOf('\n') > -1) {
-        ARTBODYs = process.env.YOUTH_ARTBODY.split('\n');
-    } else {
-        ARTBODYs = process.env.YOUTH_ARTBODY.split()
-    };
-
-    if (process.env.YOUTH_REDBODY && process.env.YOUTH_REDBODY.indexOf('&') > -1) {
-        REDBODYs = process.env.YOUTH_REDBODY.split('&');
-    } else if (process.env.YOUTH_REDBODY && process.env.YOUTH_REDBODY.indexOf('\n') > -1) {
-        REDBODYs = process.env.YOUTH_REDBODY.split('\n');
-    } else {
-        REDBODYs = process.env.YOUTH_REDBODY.split()
-    };
-
-    if (process.env.YOUTH_TIME && process.env.YOUTH_TIME.indexOf('&') > -1) {
-        READTIME = process.env.YOUTH_TIME.split('&');
-    } else if (process.env.YOUTH_TIME && process.env.YOUTH_TIME.indexOf('\n') > -1) {
-        READTIME = process.env.YOUTH_TIME.split('\n');
-    } else {
-        READTIME = process.env.YOUTH_TIME.split()
-    };
+  if (process.env.YOUTH_HEADER && process.env.YOUTH_HEADER.indexOf('#') > -1) {
+  CookieYouth = process.env.YOUTH_HEADER.split('#');
+  } else {
+      CookieYouth = process.env.YOUTH_HEADER.split()
+  };
+  
+  if (process.env.YOUTH_ARTBODY && process.env.YOUTH_ARTBODY.indexOf('&') > -1) {
+  ARTBODYs = process.env.YOUTH_ARTBODY.split('&');
+  } else {
+      ARTBODYs = process.env.YOUTH_ARTBODY.split()
+  };
+  
+  if (process.env.YOUTH_REDBODY && process.env.YOUTH_REDBODY.indexOf('&') > -1) {
+  REDBODYs = process.env.YOUTH_REDBODY.split('&');
+  } else {
+      REDBODYs = process.env.YOUTH_REDBODY.split()
+  };
+  
+  if (process.env.YOUTH_TIME && process.env.YOUTH_TIME.indexOf('&') > -1) {
+  READTIME = process.env.YOUTH_TIME.split('&');
+  }else {
+      READTIME = process.env.YOUTH_TIME.split()
+  };
 }
     
 if ($.isNode()) {
-    Object.keys(RefererYouth).forEach((item) => {
-        if (RefererYouth[item]) {
-          refererArr.push(RefererYouth[item])
+    Object.keys(CookieYouth).forEach((item) => {
+        if (CookieYouth[item]) {
+          cookiesArr.push(CookieYouth[item])
         }
       })
     Object.keys(ARTBODYs).forEach((item) => {
@@ -78,57 +70,67 @@ if ($.isNode()) {
         }
       })
       console.log(`============ 共${cookiesArr.length}个中青账号  =============\n`)
+      console.log(`============ 脚本执行-国际标准时间(UTC)：${new Date().toLocaleString()}  =============\n`)
       console.log(`============ 脚本执行-北京时间(UTC+8)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString()}  =============\n`)
     } else {
-refererArr.push($.getdata('youthheader_zq'));
+  cookiesArr.push($.getdata('youthheader_zq'));
     redpArr.push($.getdata('red_zq'));
     readArr.push($.getdata('read_zq'));
     timeArr.push($.getdata('readtime_zq'));
 }
 
+const firstcheck = $.getdata('signt');
+const runtimes = $.getdata('times');
+const opboxtime = $.getdata('opbox');
+
 if (isGetCookie = typeof $request !== 'undefined') {
    GetCookie();
    $.done()
 } 
-!(async () => {
-  if (!refererArr[0]) {
+
+ !(async () => {
+  if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取中青看点一cookie')
     return;
   }
-
-  for (let i = 0; i < refererArr.length; i++) {
-    if (refererArr[i]) {
-      cookie = refererArr[i];
+  for (let i = 0; i < cookiesArr.length; i++) {
+    if (cookiesArr[i]) {
+      signheaderVal = cookiesArr[i];
       articlebodyVal = readArr[i];
       timebodyVal = timeArr[i];
       redpbodyVal = redpArr[i];
       $.index = i + 1;
       console.log(`-------------------------\n\n开始【中青看点${$.index}】`)
-    };
-    myuid = cookie.match(/uid=\d+/);
-    await userInfo();
-    await kdHost();
-    await friendsign();
-    await comApp();
-    await TaskCenter() 
-    await openbox();
-    await getAdVideo();
-    await gameVideo();
-    await readArticle();
-    await Articlered();
-    await readTime();
+    }
+  await sign();
+  await signInfo();
+  await friendsign();
+  await comApp();
+  await ArticleShare();
+  await openbox();
+  await getAdVideo();
+  await gameVideo();
+  await readArticle();
+  await Articlered();
+  await readTime();
 for (k=0;k<5;k++){
   await $.wait(1000);
   await rotary();
-
 if (rotaryres.status == 0) {
       rotarynum = ` 转盘${rotaryres.msg}🎉`;
       break
    } else if(rotaryres.status == 1){
-     console.log("等待1s进行开始转盘任务")
+ console.log("等待1s进行开始转盘任务")
      rotaryscore += rotaryres.data.score
+   $.log("进行"+Number(100-rotaryres.data.remainTurn)+"次转盘，获得"+rotaryres.data.score+"青豆")
      rotarytimes = rotaryres.data.remainTurn
   }
+ if (rotaryres.status == 1 && rotaryres.data.doubleNum !== 0) {
+              await TurnDouble();
+           if (Doubleres.status == 1) {
+              doublerotary += Doubleres.data.score
+           }
+      }
 }
 
 if (rotaryres.status == 1) {
@@ -141,7 +143,7 @@ $.log(`转盘双倍: +${doublerotary}青豆 剩余${rotaryres.data.doubleNum}次
 }
   await earningsInfo();
   await showmsg();
-  if ($.isNode()&&rotaryres.status !== 0)
+  if ($.isNode()&&rotaryres.code !== '10010')
     if( rotarytimes && (100-rotarytimes)%95 == 0 && cash >= 10){
        await notify.sendNotify($.name + " " + nick, "您的余额约为"+cash+"元，已可以提现"+'\n'+`【收益总计】${signinfo.data.user.score}青豆  现金约${cash}元\n${detail}`)
     }
@@ -152,9 +154,8 @@ $.log(`转盘双倍: +${doublerotary}青豆 剩余${rotaryres.data.doubleNum}次
 
 
 function GetCookie() {
-   if ($request && $request.method != `OPTIONS`&& $request.url.match(/\/NewTaskIos\/getTaskList/)) {
-         RefererVal = $request.headers.Referer
-         signheaderVal = RefererVal.match(/uid=\d+/)+RefererVal.match(/&cookie=[a-zA-Z0-9-]+/)+RefererVal.match(/&cookie_id=[a-zA-Z0-9-]+/)
+   if ($request && $request.method != `OPTIONS`&& $request.url.match(/\/TaskCenter\/(sign|getSign)/)) {
+   const signheaderVal = JSON.stringify($request.headers)
     if (signheaderVal)        $.setdata(signheaderVal,'youthheader_zq')
     $.log(`${$.name} 获取Cookie: 成功,signheaderVal: ${signheaderVal}`)
     $.msg($.name, `获取Cookie: 成功🎉`, ``)
@@ -187,108 +188,49 @@ else if ($request && $request.method != `OPTIONS`&& $request.url.match(/\/withdr
     $.msg($.name, `获取提现请求: 成功🎉`, ``)
   }
  }
-function kdHost(api, header, body) {
-  return {
-    url: `https://kd.youth.cn/`+api+`&${myuid}`,
-    headers:{
-     'Accept': '*/*',
-     'Accept-Encoding': 'gzip, deflate, br',
-     'Referer': 'https://kd.youth.cn/h5/20190301taskcenter/ios/index.html?'+cookie,
-     'Host': 'kd.youth.cn',
-     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
-     'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: body,
-    //timeout: 1000,
-  }
-}
-
-function TaskCenter() {
-  return new Promise((resolve, reject) =>{
-    $.post(kdHost('WebApi/NewTaskIos/getTaskList?'), async(error, resp, data) =>{
-      try {
-        taskres = JSON.parse(data)
-        //$.log(formatJson(data))
-        if (taskres.status == 1) {
-          for (dailys of taskres.list.daily) {
-            if (dailys.status == "1" && dailys.action != "") {
-              $.log(dailys.title + "已完成 ，去领取奖励青豆");
-              await $.wait(600);
-              await getAction(dailys.reward_action)
-            }
-            if (dailys.status == "2" && dailys.action != "") {
-              await $.wait(600);
-              $.log(dailys.title + "，" + dailys.but + "，已领取青豆" + dailys.score)
-            }
-           if (dailys.id == "10" && dailys.status == "0") {
-              $.log(dailys.title + "未完成，去做任务");
-          for (x=0;x<5;x++){
-              await $.wait(5000);
-              await recordAdVideo(dailys.reward_action)
-             }
-            }
-          }
+function sign() {
+    return new Promise((resolve, reject) => {
+        const signurl = {
+            url: 'https://kd.youth.cn/TaskCenter/sign',
+            headers: JSON.parse(signheaderVal),
         }
-      } catch(e) {
-        $.log("获取任务失败，" + e)
-      } finally {
-        resolve()
-      }
-    })
-  })
-}
-
-function getAction(acttype) {
-   return new Promise((resolve, reject) =>{
-        $.get(kdHost(`WebApi/NewTaskIos/sendTwentyScore?action=${acttype}`), (error, resp, data) =>{
-            let actres = JSON.parse(data);
-            //$.log(formatJson(data));
-            if (actres.status == 1) {
-                $.log("获得青豆" + actres.score)
-            } else if (actres.status == 0) {
-                $.log(actres.msg)
-            }
-            resolve()
-        })
-    })
-}
-
-function getsign() {
-    return new Promise((resolve, reject) =>{
-        $.post(kdHost('TaskCenter/sign'), (error, resp, data) =>{
-            signres = JSON.parse(data);
-            //$.log(formatJson(data));
+        $.post(signurl, (error, response, data) => {
+            signres = JSON.parse(data)
             if (signres.status == 2) {
                 signresult = `签到失败，Cookie已失效‼️`;
                 $.msg($.name, signresult, "");
                 return;
             } else if (signres.status == 1) {
-                detail = `【签到结果】成功 🎉 青豆: +${signres.score}，明日青豆: +${signres.nextScore}\n`
-            } 
-            resolve()
+                 signresult = `【签到结果】成功 🎉 明日+${signres.nextScore} `
+                //detail = `【签到结果】成功 🎉 青豆: +${signres.score}，明日青豆: +${signres.nextScore}\n`
+            } else if (signres.status == 0) {
+                signresult = `【签到结果】重复`;
+                detail = "";
+            }
+           resolve() 
         })
     })
 }
       
-function userInfo() {
+function signInfo() {
     return new Promise((resolve, reject) => {
-        $.post(kdHost('TaskCenter/getSign'), async(error, resp, data) => {
+        const infourl = {
+            url: 'https://kd.youth.cn/TaskCenter/getSign',
+            headers: JSON.parse(signheaderVal),
+        }
+        $.post(infourl, async(error, response, data) => {
             signinfo = JSON.parse(data);
           //$.log(formatJson(data))
             if (signinfo.status == 1) {
-                cash = signinfo.data.user.money;
-                signday = signinfo.data.sign_day;
+              cash = signinfo.data.user.money
+              signday = signinfo.data.sign_day
                 subTitle = `【收益总计】${signinfo.data.user.score}青豆  现金约${cash}元`;
+                if( parseInt(cash) >= withdrawcash && !withdrawBody == "false"){
+                await withDraw()
+               }
                 nick = `账号: ${signinfo.data.user.nickname}`;
                 $.setdata(nick,"zq_nick")
-                if(parseInt(cash) >= withdrawcash && !withdrawBody == false){
-                await withDraw()
-               };
-                if(signinfo.data.is_sign == false){
-                await getsign();
-              } else if(signinfo.data.is_sign == true){
-                detail = `【签到结果】🔁 (今天+${signinfo.data.sign_score}青豆) 已连签${signday}天\n <本次收益>：\n`
-              }; 
+                detail = `${signresult}(今天+${signinfo.data.sign_score}青豆) 已连签${signday}天\n<本次收益>：\n`;
             if(signday==7){
               await SevCont();
              }
@@ -306,7 +248,7 @@ function withDraw() {
         const url = {
             url: withdrawUrl,
             headers: {
-            'User-Agent': 'KDApp/1.8.2 (iPhone; iOS 14.5; Scale/3.00)'
+            'User-Agent': 'KDApp/1.8.2 (iPhone; iOS 14.2; Scale/3.00)'
             },
             body: withdrawBody,
         }
@@ -316,7 +258,8 @@ function withDraw() {
               detail += `【自动提现】提现${withdrawcash}元成功\n`
             }else if(withDrawres.error_code == "10002"){
               $.log( `自动提现失败，${withDrawres.homeTime.text}`)
-            } else {
+            }
+            else {
               $.log( `自动提现失败，${withDrawres.message}`)
             }
             resolve()
@@ -324,80 +267,155 @@ function withDraw() {
     })
 }
 
-function SevCont() {
-    return new Promise((resolve, reject) =>{
-        $.post(kdHost('PunchCard/luckdraw?'), async(error, resp, data) =>{
-            let sevres = JSON.parse(data); 
-            if (sevres.code == 1) {
-                detail += `【七日签到】 + $ {
-                    sevres.data.score
-                }青豆\n`
-            } else if (sevres.code == 0) {
-                //detail += `【七日签到】${sevres.msg}\n`;
-                $.log(`七日签到:${sevres.msg}`)
+
+
+//打卡分享
+function Cardshare() {
+    return new Promise((resolve, reject) => {
+        const starturl = {
+            url: `${YOUTH_HOST}PunchCard/shareStart?`,
+            headers: JSON.parse(signheaderVal),
+        }
+        $.post(starturl, (error, response, data) => {
+            sharestart = JSON.parse(data)
+            //detail += `【打卡分享】${sharestart.msg}\n`
+            if (sharestart.code == 1) {
+                setTimeout(() => {
+                    let endurl = {
+                        url: `${YOUTH_HOST}PunchCard/shareEnd?`,
+                        headers: JSON.parse(signheaderVal)
+                    }
+                    $.post(endurl, (error, response, data) => {
+                        shareres = JSON.parse(data)
+                        if (shareres.code == 1) {
+                            detail += `+${shareres.data.score}青豆\n`
+                        } else {
+                            //detail += `【打卡分享】${shareres.msg}\n`
+                         //$.log(`${shareres.msg}`)
+                        }
+                        resolve()
+                    })
+                  },s*2);
             }
-            resolve()
         })
+    })
+}
+
+function SevCont() {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            $.post({url: `${YOUTH_HOST}PunchCard/luckdraw?`,
+              headers: JSON.parse(signheaderVal),
+            }, async(error, response, data) => {
+                sevres = JSON.parse(data)
+                if (sevres.code == 1) {
+                    detail += `【七日签到】+${sevres.data.score}青豆 \n`
+                }else if (sevres.code == 0){
+                     //detail += `【七日签到】${sevres.msg}\n`
+                    $.log(`七日签到: ${sevres.msg}`)
+                }
+                resolve()
+            })
+        },s)
+    })
+}
+
+function ArticleShare() {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const url = {
+                url: `https://focus.youth.cn/article/s?signature=P5zR0VlwdZoWp3N4KmdjzYCBXDRQtZ2Kkl8aMQLb6BeXxq2kEr&uid=46746961&phone_code=c6dcf2a3056a5183edc85313fdbf3e6e&scid=35902988&time=1611338382&app_version=1.8.2&sign=0b8019551761cc3ebf0b4775701fd16e`,
+                headers: JSON.parse(signheaderVal),
+            }
+            $.post(url, async(error, response, data) => {
+                //boxres = JSON.parse(data)
+                resolve()
+            })
+        },s)
     })
 }
 
 
 //开启时段宝箱
 function openbox() {
-  return new Promise((resolve, reject) =>{
-    $.post(kdHost('WebApi/invite/openHourRed'), async(error, resp, data) =>{
-      let boxres = JSON.parse(data);
-      if (boxres.code == 1) {
-        boxretime = boxres.data.time;
-        detail += `【开启宝箱】 + ${boxres.data.score}青豆，${boxres.data.time / 60}分钟后再次奖励\n`;
-        await boxshare();
-      } else {
-        //detail += `【开启宝箱】${boxres.msg}\n`;
-        $.log(`开启宝箱: ${boxres.msg}`)
-      }
-      resolve()
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const url = {
+                url: `${YOUTH_HOST}invite/openHourRed`,
+                headers: JSON.parse(signheaderVal),
+            }
+            $.post(url, async(error, response, data) => {
+                boxres = JSON.parse(data)
+                if (boxres.code == 1) {
+                  boxretime = boxres.data.time
+                  $.setdata(boxretime, 'opbox')
+                    detail += `【开启宝箱】+${boxres.data.score}青豆 下次奖励${boxres.data.time / 60}分钟\n`
+                      await boxshare();
+                }else{
+                    //detail += `【开启宝箱】${boxres.msg}\n`
+                   $.log(`开启宝箱 :${boxres.msg}`)
+                }
+                resolve()
+            })
+        },s)
     })
-  })
 }
 
 //宝箱分享
 function boxshare() {
     return new Promise((resolve, reject) => {
-       $.post(kdHost('WebApi/invite/shareEnd'), (error, resp, data) => {
-           let shareres = JSON.parse(data);
-           if (shareres.code == 1) {
+        setTimeout(() => {
+            const url = {
+                url: `${YOUTH_HOST}invite/shareEnd`,
+                headers: JSON.parse(signheaderVal),
+            }
+            $.post(url, (error, response, data) => {
+   
+                shareres = JSON.parse(data)
+                if (shareres.code == 1) {
                     detail += `【宝箱分享】+${shareres.data.score}青豆\n`
-           } else {
-                    //detail += `【宝箱分享】${shareres.msg}\n`;
+                }else{
+                    //detail += `【宝箱分享】${shareres.msg}\n`
                   //$.log(`${shareres.msg}`)
                 }
                 resolve()
-          })
+            })
+        },s*2);
     })
 }
 
 function friendsign() {
-  return new Promise((resolve, reject) =>{
-    $.get(kdHost('WebApi/ShareSignNew/getFriendActiveList'), async(error, resp, data) =>{
-      let addsign = JSON.parse(data);
-      if (addsign.error_code == "0" && addsign.data.active_list.length > 0) {
-        friendsitem = addsign.data.active_list;
-        for (friends of friendsitem) {
-          if (friends.button == 1) {
-            await friendSign(friends.uid)
-          }
+    return new Promise((resolve, reject) => {
+        const url = {
+            url: `https://kd.youth.cn/WebApi/ShareSignNew/getFriendActiveList`,
+            headers: JSON.parse(signheaderVal)
         }
-      }
-      resolve()
+        $.get(url, async(error, response, data) => {
+            let addsign = JSON.parse(data)
+            if (addsign.error_code == "0"&& addsign.data.active_list.length>0) {
+             friendsitem = addsign.data.active_list
+             for(friends of friendsitem){
+            if(friends.button==1){
+               await friendSign(friends.uid)
+              }
+             }
+            }
+           resolve()
+        })
     })
-  })
 }
+
+
 function friendSign(uid) {
     return new Promise((resolve, reject) => {
-        $.get(kdHost(`WebApi/ShareSignNew/sendScoreV2?friend_uid=${uid}`), (error, response, data) => {
-            let friendres = JSON.parse(data);
+        const url = {
+            url: `https://kd.youth.cn/WebApi/ShareSignNew/sendScoreV2?friend_uid=${uid}`,
+            headers: JSON.parse(signheaderVal)
+        }
+        $.get(url, (error, response, data) => {
+            friendres = JSON.parse(data)
             if (friendres.error_code == "0") {
-                detail += `【好友红包】+${friendres.data[0].score}个青豆\n`;
+                detail += `【好友红包】+${friendres.data[0].score}个青豆\n`
                console.log(`好友签到，我得红包 +${friendres.data[0].score}个青豆`)
             }
             resolve()
@@ -405,11 +423,17 @@ function friendSign(uid) {
     })
 }
 
+
 //看视频奖励
 function getAdVideo() {
     return new Promise((resolve, reject) => {
-        $.post(kdHost('taskCenter/getAdVideoReward',"",'type=taskCenter'), (error, resp, data) => {
-           let adVideores = JSON.parse(data);
+        const url = {
+            url: `https://kd.youth.cn/taskCenter/getAdVideoReward`,
+            headers: JSON.parse(signheaderVal),
+            body: 'type=taskCenter'
+        }
+        $.post(url, (error, response, data) => {
+            adVideores = JSON.parse(data)
             if (adVideores.status == 1) {
                 detail += `【观看视频】+${adVideores.score}个青豆\n`
               $.log("观看视频广告"+ adVideores.num +"次 +"+adVideores.score+"青豆")
@@ -418,20 +442,6 @@ function getAdVideo() {
         })
     })
 }
-function recordAdVideo(acttype) {
-    return new Promise((resolve, reject) => {
-        $.get(kdHost(`WebApi/NewTaskIos/recordNum?action=${acttype}`), async(error, resp, data) => {
-           let record = JSON.parse(data);
-            //$.log(data)
-            if (record.status == 0) {
-               await getAction(acttype);
-            }
-            resolve()
-        })
-    })
-}
-
-
 // 激励视频奖励
 function gameVideo() {
     return new Promise((resolve, reject) => {
@@ -439,8 +449,7 @@ function gameVideo() {
             url: `https://ios.baertt.com/v5/Game/GameVideoReward.json`,
             body: articlebodyVal,
         }
-        $.post(url, (error, resp, data) => {
-          //$.log(data)
+        $.post(url, (error, response, data) => {
             gameres = JSON.parse(data)
             if (gameres.success == true) {
                 detail += `【激励视频】${gameres.items.score}\n`
@@ -455,8 +464,6 @@ function gameVideo() {
         })
     })
 }
-
-
 function comApp() {
     return new Promise((resolve, reject) => {
         const url = {
@@ -557,39 +564,36 @@ function readTime() {
 
 //转盘任务
 function rotary() {
-  return new Promise((resolve, reject) =>{
-      const time = new Date().getTime();
-      const url = {
-        url: `https://kd.youth.cn/WebApi/RotaryTable/turnRotary?_=${time}`,
-        headers: {
-          'Referer': 'https://kd.youth.cn/html/rotaryTable/index.html?' + cookie
-        },
-        body: cookie,
-      }
-      $.post(url, async(error, resp, data) =>{
-        try {
-          rotaryres = JSON.parse(data);      
-          //$.log(formatJson(data));
-        if (rotaryres.status==1){
-           $.log("进行"+Number(100-rotaryres.data.remainTurn)+"次转盘，获得"+rotaryres.data.score+"青豆")
-         if(rotaryres.data.score != 0&&rotaryres.data.doubleNum!=0){
-           await $.wait(5000);
-           await TurnDouble();
-          }
-          await rotaryCheck();
-         }
-        } catch(e) {
-          $.logErr(e+resp);
-        } finally {
-          resolve()
-        }
-      })
-  })
+   const rotarbody = signheaderVal.split("&")[15] + '&' + signheaderVal.split("&")[8]
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const time = new Date().getTime()
+            const url = {
+                url: `${YOUTH_HOST}RotaryTable/turnRotary?_=${time}`,
+                headers: JSON.parse(signheaderVal),
+                body: rotarbody
+            }
+            $.post(url,async (error, response, data) => {
+                try{
+                      rotaryres = JSON.parse(data)
+              await rotaryCheck()
+                     } catch (e) {
+                   $.logErr(e, resp);
+                   } finally {
+                  resolve()
+                }
+            })
+        }, s);
+    })
 }
 
 //转盘宝箱判断
 function rotaryCheck() {
     return new Promise(async(resolve) => {
+        if (rotaryres.code == 10010) {
+            return resolve();
+        }
+
         let i = 0;
         while (i <= 3) {
             if (100 - rotaryres.data.remainTurn >= rotaryres.data.chestOpen[i].times&&rotaryres.data.chestOpen[i].received==0) {
@@ -604,18 +608,15 @@ function rotaryCheck() {
 //开启宝箱
 function runRotary(index) {
     return new Promise((resolve, reject) => {
-        const rotarbody = cookie + '&num=' + index;
+        const rotarbody = signheaderVal.split("&")[15] + '&' + signheaderVal.split("&")[8] + '&num=' + index;
         const time = new Date().getTime();
         const url = {
             url: `${YOUTH_HOST}RotaryTable/chestReward?_=${time}`,
-              headers:{
-                 'Referer':'https://kd.youth.cn/html/rotaryTable/index.html?'+cookie
-               },
+            headers: JSON.parse(signheaderVal),
             body: rotarbody
         }
-        $.post(url, (error, resp, data) => {
-        let rotaryresp = JSON.parse(data);
-          //$.log(formatJson(data));
+        $.post(url, (error, response, data) => {
+        const rotaryresp = JSON.parse(data);
             if (rotaryresp.status == 1) {
                 detail += `【转盘宝箱${index}】+${rotaryresp.data.score}个青豆\n`;
             }else{
@@ -630,48 +631,49 @@ function runRotary(index) {
 
 //转盘双倍奖励
 function TurnDouble() {
-  return new Promise((resolve, reject) =>{
-    let time = new Date().getTime();
-    const url = {
-      url: `https://kd.youth.cn/WebApi/RotaryTable/toTurnDouble?_=${time}`,
-      headers: {
-        'Referer': 'https://kd.youth.cn/html/rotaryTable/index.html?' + cookie
-      },
-      body: cookie
-    }
-    $.post(url, (error, resp, data) =>{
-      try {
-        let Doubleres = JSON.parse(data);
-        if (Doubleres.data.is_double == 1) {
-          $.log("获得双倍青豆+" + Doubleres.data.score1);
-          doublerotary += Doubleres.data.score
-        }
-      } catch(e) {
-        $.logErr(e, resp);
-      } finally {
-        resolve()
-      }
+    const rotarbody = signheaderVal.split("&")[15] + '&' + signheaderVal.split("&")[8]
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          let time = (new Date()).getTime()
+            const url = {
+                url: `${YOUTH_HOST}RotaryTable/toTurnDouble?_=${time}`,headers: JSON.parse(signheaderVal),body: rotarbody}
+            $.post(url, (error, response, data) => { 
+              try{
+                Doubleres = JSON.parse(data)
+                     } catch (e) {
+                   $.logErr(e, resp);
+                   } finally {
+                  resolve()
+                }
+             resolve()
+            })
+        },s)
     })
-  })
 }
 function earningsInfo() {
-  return new Promise((resolve, reject) =>{
-    $.get(kdHost(`wap/user/balance?`+cookie), (error, response, data) =>{
-      infores = JSON.parse(data);
-      if (infores.status == 0) {
-        detail += ` <收益统计> ：\n`
-        for (i = 0; i < infores.history[0].group.length; i++) {
-          detail += '【' + infores.history[0].group[i].name + '】' + infores.history[0].group[i].money + '个青豆\n'
-        }
-        detail += '<今日合计>： ' + infores.history[0].score + " 青豆"
-      }
-      resolve()
+  return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const url = {
+                url: `https://kd.youth.cn/wap/user/balance?${JSON.parse(signheaderVal)['Referer'].split("?")[1]}`,
+                headers: JSON.parse(signheaderVal),
+            }
+        $.get(url, (error, response, data) => {
+              infores = JSON.parse(data)
+                if (infores.status == 0) {
+                    detail += `<收益统计>：\n`
+                    for (i = 0; i < infores.history[0].group.length; i++) {
+                        detail += '【' + infores.history[0].group[i].name + '】' + infores.history[0].group[i].money + '个青豆\n'
+                    }
+                    detail += '<今日合计>： ' + infores.history[0].score + " 青豆"
+                }
+                resolve()
+            })
+        },s)
     })
-  })
 }
 async function showmsg() {
        if (rotaryres.status == 1 && rotarytimes >= 97) {
-          $.msg($.name + " " + nick, subTitle, detail)  //默认前三次为通知
+            $.msg($.name + " " + nick, subTitle, detail)  //默认前三次为通知
         }else if (rotaryres.status == 1 && rotarytimes % notifyInterval == 0) {
         $.msg($.name + " " + nick, subTitle, detail) //转盘次数/间隔整除时通知;
         }else if (rotaryres.code == 10010 && notifyInterval != 0) {
